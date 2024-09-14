@@ -1,0 +1,26 @@
+[package]
+name = "bbswift"
+version = "0.46.1" # This version should align with aztec packages
+authors = ["Porco"]
+repository = "https://github.com/porco_rosso_j/bb-swift.git"
+license = "Apache-2.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib"]
+
+[build-dependencies]
+swift-bridge-build = "0.1"
+sha2 = "0.10.8"
+regex = "1.10.2"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+swift-bridge = "0.1"
+bb_rs = { git = "https://github.com/porco-rosso-j/aztec-packages.git", rev = "55a4f5f"}
+
+[profile.release]
+strip = "symbols"
+lto = true
+  
