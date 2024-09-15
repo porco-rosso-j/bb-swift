@@ -6,11 +6,11 @@ let package = Package(
     name: "BBSwift",
     platforms: [
         .macOS(.v10_15), 
-        .iOS(.v14)],
+        .iOS(.v13)],
     products: [
         .library(
             name: "BBSwift",
-            targets: ["BBSwift"]),
+            targets: ["BBSwift", "BBSwiftFramework"]),
     ],
     targets: [
         .target(
@@ -21,8 +21,8 @@ let package = Package(
         ),
         .binaryTarget(
             name: "BBSwiftFramework",
-            url: "https://github.com/porco-rosso-j/react-native-bb.js/releases/download/v0.46.1/BBSwift.xcframework.zip",
-            checksum: "e868c3f820d447ec9c8f50a306e4172eb026ed3b0c9639db1949cde8a43ed5c9"
+            url: "https://github.com/porco-rosso-j/bb-swift/releases/download/v0.46.1/BBSwift.xcframework.zip",
+            checksum: "cf9a38bbf0bee61a88a15d4aca412cb336c2eac79b49943e2f08b010146539c2"
         ),
         .testTarget(
             name: "SwiftBridgeTest",

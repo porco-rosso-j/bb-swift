@@ -10,6 +10,8 @@ use bb_rs::barretenberg_api::{
     traits::{DeserializeBuffer, SerializeBuffer},
 };
 
+// use swift_bridge::ffi::FfiSlice;
+
 #[swift_bridge::bridge]
 mod ffi {
     extern "Rust" {
@@ -17,7 +19,7 @@ mod ffi {
         type Point;
 
         fn pedersen_commit_swift(inputs: &[u8]) -> Vec<u8>;
-        fn pedersen_hash_swift(inputs: &[u8]) -> Vec<u8>;
+        fn pedersen_hash_swift(inputs: &[u8], index: u32) -> Vec<u8>;
         fn poseidon2_hash_swift(inputs: &[u8]) -> Vec<u8>;
         fn ecdsa__compute_public_key_swift(private_key: &[u8]) -> Vec<u8>;
         fn ecdsa__construct_signature_swift(
@@ -45,23 +47,75 @@ mod ffi {
     }
 }
 
+// pub fn pedersen_commit_swift(inputs: &[u8]) -> Vec<u8> {
+//     let input: [u8; 32] = inputs.try_into().unwrap();
+//     let result: Point = unsafe { pedersen_commit(&[Fr::from_buffer(input)]) };
+//     result.to_buffer()
+// }
+
+// pub fn pedersen_hash_swift(inputs: &[&[u8]]) -> Vec<u8> {
+//     let input: [u8; 32] = inputs.try_into().unwrap();
+//     let result: Fr = unsafe { pedersen_hash(&[Fr::from_buffer(input)], 0u32) };
+//     result.to_buffer()
+// }
+
+// pub fn poseidon2_hash_swift(inputs: &[u8]) -> Vec<u8> {
+//     let input: [u8; 32] = inputs.try_into().unwrap();
+//     let result: Fr = unsafe { poseidon2_hash(&[Fr::from_buffer(input)]) };
+//     result.to_buffer()
+// }
+
 pub fn pedersen_commit_swift(inputs: &[u8]) -> Vec<u8> {
-    let input: [u8; 32] = inputs.try_into().unwrap();
-    let result: Point = unsafe { pedersen_commit(&[Fr::from_buffer(input)]) };
+    let fr_count = inputs.len() / 32;
+    let mut fr_inputs = Vec::with_capacity(fr_count);
+    for i in 0..fr_count {
+        let start = i * 32;
+        let end = start + 32;
+        let input_slice = &inputs[start..end];
+        let fr = Fr::from_buffer(
+            <[u8; 32]>::try_from(input_slice).expect("Each input must be exactly 32 bytes"),
+        );
+        fr_inputs.push(fr);
+    }
+
+    let result: Point = unsafe { pedersen_commit(&fr_inputs) };
     result.to_buffer()
 }
 
-pub fn pedersen_hash_swift(inputs: &[u8]) -> Vec<u8> {
-    let input: [u8; 32] = inputs.try_into().unwrap();
-    let result: Fr = unsafe { pedersen_hash(&[Fr::from_buffer(input)], 0u32) };
+pub fn pedersen_hash_swift(inputs: &[u8], index: u32) -> Vec<u8> {
+    let fr_count = inputs.len() / 32;
+    let mut fr_inputs = Vec::with_capacity(fr_count);
+    for i in 0..fr_count {
+        let start = i * 32;
+        let end = start + 32;
+        let input_slice = &inputs[start..end];
+        let fr = Fr::from_buffer(
+            <[u8; 32]>::try_from(input_slice).expect("Each input must be exactly 32 bytes"),
+        );
+        fr_inputs.push(fr);
+    }
+
+    let result: Fr = unsafe { pedersen_hash(&fr_inputs, index) };
     result.to_buffer()
 }
 
 pub fn poseidon2_hash_swift(inputs: &[u8]) -> Vec<u8> {
-    let input: [u8; 32] = inputs.try_into().unwrap();
-    let result: Fr = unsafe { poseidon2_hash(&[Fr::from_buffer(input)]) };
+    let fr_count = inputs.len() / 32;
+    let mut fr_inputs = Vec::with_capacity(fr_count);
+    for i in 0..fr_count {
+        let start = i * 32;
+        let end = start + 32;
+        let input_slice = &inputs[start..end];
+        let fr = Fr::from_buffer(
+            <[u8; 32]>::try_from(input_slice).expect("Each input must be exactly 32 bytes"),
+        );
+        fr_inputs.push(fr);
+    }
+
+    let result: Fr = unsafe { poseidon2_hash(&fr_inputs) };
     result.to_buffer()
 }
+
 pub fn ecdsa__compute_public_key_swift(private_key: &[u8]) -> Vec<u8> {
     let result = unsafe { ecdsa__compute_public_key(&private_key) };
     result.to_vec()
@@ -116,4 +170,39 @@ pub fn ecc_grumpkin__mul_swift(point_a_buf: &[u8], point_b_buf: &[u8]) -> Vec<u8
 pub fn ecc_grumpkin__add_swift(point_a_buf: &[u8], point_b_buf: &[u8]) -> Vec<u8> {
     let result = unsafe { ecc_grumpkin__add(&point_a_buf, &point_b_buf) };
     result.to_vec()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*; // Assuming pedersen_hash_swift is in the same module
+
+    #[test]
+    fn test_pedersen_hash_swift() {
+        // Define the input values as arrays of u8 slices
+        let inputs: &[&[u8]] = &[
+            &[
+                6, 196, 4, 126, 220, 48, 240, 65, 72, 173, 40, 101, 187, 150, 245, 115, 253, 193,
+                91, 5, 45, 148, 91, 74, 184, 111, 200, 144, 36, 203, 76, 229,
+            ],
+            &[
+                6, 196, 4, 126, 220, 48, 240, 65, 72, 173, 40, 101, 187, 150, 245, 115, 253, 193,
+                91, 5, 45, 148, 91, 74, 184, 111, 200, 144, 36, 203, 76, 229,
+            ],
+        ];
+
+        // Define the hash index as u32
+        let index: u32 = 0;
+
+        // Call the pedersen_hash_swift function
+        let result = pedersen_hash_swift(inputs, &index);
+
+        // Expected result length (since it's returning a Vec<u8>)
+        assert_eq!(result.len(), 32); // Assuming the result should be 32 bytes
+
+        // Optional: print the result for manual inspection
+        println!("Pedersen hash result: {:?}", result);
+
+        // Add more specific assertions if you know the expected hash result
+        // e.g. assert_eq!(result, expected_result); if you have an expected output.
+    }
 }
