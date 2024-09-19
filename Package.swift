@@ -21,8 +21,8 @@ let package = Package(
         ),
         .binaryTarget(
             name: "BBSwiftFramework",
-            url: "https://github.com/porco-rosso-j/bb-swift/releases/download/v0.46.1/BBSwift.xcframework.zip",
-            checksum: "cf9a38bbf0bee61a88a15d4aca412cb336c2eac79b49943e2f08b010146539c2"
+            url: "https://github.com/porco-rosso-j/bb-swift/releases/download/v0.46.1-2/BBSwift.xcframework.zip",
+            checksum: "f732107589bbf30799f5061c3c63140db40e96150c76fedbb13bcb81ce35d686"
         ),
         .testTarget(
             name: "SwiftBridgeTest",

@@ -1,4 +1,5 @@
 import Foundation
+import BBSwiftLib
 
 extension RustString {
     public func toString() -> String {
